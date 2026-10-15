@@ -1,0 +1,7 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {validateMedia,validateGallery,MEDIA_LIMIT} from '../lib/media.js';
+import {can,allowedTabs} from '../lib/permissions.js';
+test('media accepts supported files and rejects unsafe formats, empty and oversized files',()=>{assert.equal(validateMedia('image/png',100),'image');assert.equal(validateMedia('audio/wav',MEDIA_LIMIT),'audio');assert.equal(validateMedia('video/mp4',100),'video');for(const [type,size]of [['text/html',100],['image/svg+xml',100],['image/png',0],['video/mp4',MEDIA_LIMIT+1]])assert.throws(()=>validateMedia(type,size))});
+test('gallery preserves order and captions while rejecting unsafe links and excess photos',()=>{const photos=[{url:'/images/a.jpg',alt:'First'},{url:'https://example.com/b.jpg',alt:'Second'}];assert.deepEqual(validateGallery(photos),photos);assert.throws(()=>validateGallery([{url:'javascript:alert(1)',alt:''}]));assert.throws(()=>validateGallery(Array(31).fill(photos[0])));assert.throws(()=>validateGallery({}));assert.throws(()=>validateGallery([{url:photos[0].url,alt:'x'.repeat(301)}]))});
+test('producer gets media and portfolio but retains restricted studio operations',()=>{for(const tab of ['Projects','Media library','Studio experience'])assert.ok(allowedTabs('producer').includes(tab));for(const tab of ['Bookings','Settings','Staff access','Services','Notifications'])assert.ok(!allowedTabs('producer').includes(tab));assert.equal(can('producer','content'),false);assert.equal(can('engineer','media'),false)});

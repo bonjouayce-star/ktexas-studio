@@ -1,0 +1,17 @@
+import {injectMeta} from './lib/site-meta.js';
+import {defaultSettings} from './src/data.js';
+import staff from './api/staff.js';
+import documents from './api/documents.js';
+import {defineConfig,loadEnv} from 'vite';
+import bookings from './api/bookings.js';
+import portal from './api/portal.js';
+import studio from './api/studio.js';
+import checkout from './api/checkout.js';
+import notifications from './api/notifications.js';
+import webhook from './api/stripe-webhook.js';
+import availability from './api/availability.js';
+import workflow from './api/workflow.js';
+import mpesa from './api/mpesa.js';
+import mpesaCallback from './api/mpesa-callback.js';
+const routes={staff,documents,availability,workflow,mpesa,'mpesa-callback':mpesaCallback,bookings,portal,studio,checkout,notifications,'stripe-webhook':webhook};
+export default defineConfig(({mode})=>{const env=loadEnv(mode,process.cwd(),'');for(const [key,value]of Object.entries(env))if(process.env[key]===undefined)process.env[key]=value;return {plugins:[{name:'studio-local-api',transformIndexHtml(html,context){return context.server?injectMeta(html,defaultSettings,env.SITE_URL):html},configureServer(server){server.middlewares.use(async(req,res,next)=>{const path=(req.url||'').split('?')[0],key=path.startsWith('/api/')?path.slice(5):'';const handler=routes[key];if(!handler)return next();res.status=n=>{res.statusCode=n;return res};res.json=body=>{res.setHeader('Content-Type','application/json');res.end(JSON.stringify(body));return res};try{if(typeof handler.fetch==='function'){const chunks=[];for await(const chunk of req)chunks.push(Buffer.from(chunk));const body=Buffer.concat(chunks);const request=new Request(`http://localhost${req.url}`,{method:req.method,headers:req.headers,...(!['GET','HEAD'].includes(req.method)?{body}:{} )});const response=await handler.fetch(request);res.statusCode=response.status;response.headers.forEach((value,name)=>res.setHeader(name,value));res.end(Buffer.from(await response.arrayBuffer()));return}let size=0;const parts=[];for await(const chunk of req){size+=chunk.length;if(size>20000){res.status(413).json({error:'Request too large.'});return}parts.push(Buffer.from(chunk))}const raw=Buffer.concat(parts).toString('utf8');try{req.body=raw?JSON.parse(raw):undefined}catch{res.status(400).json({error:'Invalid request.'});return}await handler(req,res)}catch{res.status(503).json({error:'The local studio server could not complete this request.'})}})}}],server:{host:'0.0.0.0'}}});
