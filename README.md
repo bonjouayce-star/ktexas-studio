@@ -104,3 +104,9 @@ The separate `studio-public-media` bucket is public, accepts the listed image/au
 Producers can publish public portfolio content and edit showreel/audio fields, with server checks and database policies. They cannot edit packages, services, studio identity, staff, bookings or payments. Engineers keep their existing assigned-client-project access. New audio fields merge atomically into the existing experience so package/team/tour details survive.
 
 `tests/media*.test.js` and the database suite verify media validation, gallery rules, role restrictions and storage policies. `scripts/media-acceptance.mjs [site-origin]` uses disposable accounts to test real image/audio uploads, public retrieval, portfolio galleries, draft isolation and denied client/engineer operations, then cleans up only its fixtures. It requires the existing local server/public environment values and prints no credentials.
+
+## Website editor
+
+Open `/admin` and select **Website editor** for a central, no-code content desk. Owners can edit the welcome headline, introduction, hero photo, phone/WhatsApp, email, location, social links and booking availability. The simplified hero preview updates while typing or choosing media; **Publish website changes** saves through the existing studio settings permissions. **Discard edits** restores the last saved values. Demo saves remain in the current browser session.
+
+Cards lead to project galleries, the public media library, services/new offers, packages, reel, team, tour and testimonials. Managers can use the content desk shortcuts; contact and hero settings remain owner-only. New offers use the existing services and packages editors; this does not introduce a separate retail catalog or checkout. Public layout and database schema are unchanged.
